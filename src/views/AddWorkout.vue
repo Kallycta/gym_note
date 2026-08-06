@@ -26,23 +26,34 @@ const transition = currentPage?.transition || 'slide-up'
 // Определяем классы в зависимости от transition
 const isSlideLeft = transition === 'slide-left'
 const isSlideUp = transition === 'slide-bottom' || transition === 'slide-up'
+const isNone = transition === 'none'
 
 onMounted(() => {
-	requestAnimationFrame(() => {
-		ready.value = true
+	if(transition !==  'none') {
 		requestAnimationFrame(() => {
-			isVisible.value = true
+			ready.value = true
+			requestAnimationFrame(() => {
+				isVisible.value = true
+			})
 		})
-	})
+	} else {
+		// Для 'none' - сразу показываем без анимации
+		ready.value = true
+		isVisible.value = true
+	}
 })
 
 function handleClose() {
 	isLeaving.value = true
 	isVisible.value = false
 
-	setTimeout(() => {
-		goBack()
-	}, 350)
+	if(transition !==  'none') {
+		setTimeout(() => {
+			goBack()
+		}, 350)
+	} else goBack()
+
+
 }
 
 async function handleAddWorkout2() {
@@ -59,7 +70,8 @@ async function handleAddWorkout2() {
       'add-workout-visible': isVisible,
       'add-workout-leaving': isLeaving,
       'slide-left-mode': isSlideLeft,
-      'slide-up-mode': isSlideUp
+      'slide-up-mode': isSlideUp,
+      'none-mode': isNone
     }"
 	>
 		<div class="content-sheet">
@@ -116,6 +128,21 @@ async function handleAddWorkout2() {
 }
 .add-workout-leaving.slide-left-mode {
 	transform: translateX(100%);
+}
+
+/* NONE (появляется поверх без анимации) */
+.none-mode {
+	align-items: stretch;
+	transform: none;
+}
+.add-workout-ready.none-mode {
+	transition: none;
+}
+.add-workout-visible.none-mode {
+	transform: none;
+}
+.add-workout-leaving.none-mode {
+	transform: none;
 }
 
 .content-sheet {
