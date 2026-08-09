@@ -25,6 +25,7 @@ const transition = currentPage?.transition || 'slide-up'
 // Определяем классы в зависимости от transition
 const isSlideLeft = transition === 'slide-left'
 const isSlideUp = transition === 'slide-bottom' || transition === 'slide-up'
+const isNone = transition === 'none'
 
 onMounted(() => {
 	if(transition !==  'none') {
@@ -34,6 +35,10 @@ onMounted(() => {
 				isVisible.value = true
 			})
 		})
+	} else {
+		// Для 'none' - сразу показываем без анимации
+		ready.value = true
+		isVisible.value = true
 	}
 
 })
@@ -60,7 +65,8 @@ function handleClose() {
       'add-workout-visible': isVisible,
       'add-workout-leaving': isLeaving,
       'slide-left-mode': isSlideLeft,
-      'slide-up-mode': isSlideUp
+      'slide-up-mode': isSlideUp,
+      'none-mode': isNone
     }"
 	>
 		<div class="content-sheet">
@@ -112,6 +118,21 @@ function handleClose() {
 }
 .add-workout-leaving.slide-left-mode {
 	transform: translateX(100%);
+}
+
+/* NONE (появляется поверх без анимации) */
+.none-mode {
+	align-items: stretch;
+	transform: none;
+}
+.add-workout-ready.none-mode {
+	transition: none;
+}
+.add-workout-visible.none-mode {
+	transform: none;
+}
+.add-workout-leaving.none-mode {
+	transform: none;
 }
 
 .content-sheet {

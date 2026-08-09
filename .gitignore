@@ -1,39 +1,51 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Node.js
+node_modules/
+npm-debug.log
+npm-debug.log.*
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+/node_modules
+# Cordova / Ionic
 
-node_modules
+plugins/
+www/
+*.apk
+*.ipa
+*.xcconfig
+*.xcworkspace
+*.xcodeproj
+*.iml
+*.ipr
+*.iws
+.idea/
 .DS_Store
-dist
-dist-ssr
-coverage
-*.local
+Thumbs.db
+*.swp
+*.swo
+*.orig
+*.log
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Environment files (секретные данные)
+.env
+.env.*
+!.env.example
 
-*.tsbuildinfo
+# Build artifacts
+resources/android/
+resources/ios/
+resources/splash/
+resources/icon/
 
-.eslintcache
+# VS Code
+.vscode/
+*.code-workspace
 
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
+# Testing
+coverage/
+.nyc_output/
 
-# Vitest
-__screenshots__/
-
-# Vite
-*.timestamp-*-*.mjs
+# Temporary files
+tmp/
+temp/

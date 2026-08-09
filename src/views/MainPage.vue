@@ -20,12 +20,17 @@ const navigateForward = inject<(pageName: string, params?: any, transition?: str
 
 async function handleAddWorkout() {
 	// slide-left = страница выезжает справа налево
-	await navigateForward('addWorkout', { message: 'Привет!' }, 'slide-left')
+	await navigateForward('addWorkout', { message: 'Привет!' }, 'slide-bottom')
 }
 
 async function handleAddWorkout2() {
 	// slide-bottom = страница выезжает снизу вверх
-	await navigateForward('settings', { message: 'Снизу!' }, 'slide-bottom')
+	await navigateForward('settings', { message: 'Снизу!' }, 'slide-left')
+}
+
+async function handleAddWorkout3() {
+	// none = страница появляется поверх без анимации (просто замена контента)
+	await navigateForward('settings', { message: 'Без анимации!' }, 'none')
 }
 
 // async function handleAddWorkout() {
@@ -107,8 +112,12 @@ const handleDateSelect = (date: Date) => {
 			+
 		</button>
 
-		<button class="fab-add-btn-2" @click="handleAddWorkout2" aria-label="Добавить тренировку">
+		<button class="fab-add-btn-2" @click="handleAddWorkout2" aria-label="Добавить тренировку (снизу)">
 			-
+		</button>
+
+		<button class="fab-add-btn-3" @click="handleAddWorkout3" aria-label="Добавить тренировку (без анимации)">
+			×
 		</button>
 
 		<!-- 4. Полоска домой (Home Indicator) -->
@@ -179,7 +188,7 @@ const handleDateSelect = (date: Date) => {
 	text-align: center;
 }
 
-.fab-add-btn, .fab-add-btn-2 {
+.fab-add-btn, .fab-add-btn-2, .fab-add-btn-3 {
 	position: fixed;
 	bottom: 30px;
 	right: 24px;
@@ -200,6 +209,10 @@ const handleDateSelect = (date: Date) => {
 }
 .fab-add-btn-2 {
 	right: 90px;
+
+}
+.fab-add-btn-3 {
+	right: 156px;
 
 }
 
