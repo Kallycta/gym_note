@@ -6,6 +6,7 @@ import TImerPanel from '@/componets/TImerPanel.vue'
 import CalendarPanel from '@/componets/CalendarPanel.vue'
 import { useCollapse } from '@/composables/useCollapse.ts'
 import { useNavigationStack } from '@/composables/useNavigationStack.ts'
+import { workoutStore } from '@/stores/workoutStore'
 
 // Пример данных с тренировками (в реальном приложении это будет из API)
 const workoutDates = ref(['2026-09-01', '2026-09-05', '2026-09-10'])
@@ -66,6 +67,16 @@ const handleDateSelect = (date: Date) => {
 	selectedDate.value = date
 }
 
+// Получаем упражнения для выбранной даты
+const exercisesForDate = computed(() => {
+	const dateStr = selectedDate.value.toISOString().split('T')[0]
+	return workoutStore.getExercisesForDate(dateStr)
+})
+
+// Удаляем упражнение
+const removeExercise = (id: number) => {
+	workoutStore.removeExercise(id)
+}
 
 </script>
 
@@ -98,13 +109,45 @@ const handleDateSelect = (date: Date) => {
 
 		<!--		<img src="/1.jpg" alt="">-->
 
-		<!-- 2. Основной контент (пустое состояние) -->
-		<main class="empty-state-container">
-			<div class="sleep-illustration"><span>z</span><span>z</span><span>z</span></div>
-			<div class="empty-text">
-				<div>Тренировка</div>
-				<div>отсутствует</div>
-			</div>
+		<!-- 2. Основной контент (список упражнений или пустое состояние) -->
+		<main class="content-container">
+			<template v-if="exercisesForDate.length > 0">
+				<div class="exercises-list">
+					<div 
+						v-for="exercise in exercisesForDate" 
+						:key="exercise.id"
+						class="exercise-item"
+					>
+						<div class="exercise-left">
+							<div class="exercise-icon">
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M5 16 L10 10 L14 14 L19 9" />
+									<rect x="2" y="18" width="20" height="4" rx="1" />
+								</svg>
+							</div>
+							<div class="exercise-info">
+								<span class="exercise-name">{{ exercise.name }}</span>
+								<span class="exercise-category">{{ exercise.category }}</span>
+							</div>
+						</div>
+						<button class="remove-btn" @click="removeExercise(exercise.id)" aria-label="Удалить">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+				</div>
+			</template>
+			<template v-else>
+				<div class="empty-state-container">
+					<div class="sleep-illustration"><span>z</span><span>z</span><span>z</span></div>
+					<div class="empty-text">
+						<div>Тренировка</div>
+						<div>отсутствует</div>
+					</div>
+				</div>
+			</template>
 		</main>
 
 		<!-- 3. Плавающая кнопка (FAB) -->
@@ -138,13 +181,92 @@ const handleDateSelect = (date: Date) => {
 	overflow: hidden; /* Чтобы внутренности не вылезали за экран */
 }
 
-/* 2. Пустое состояние */
+/* 2. Пустое состояние и контент */
+.content-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 1;
+	width: 100%;
+}
+
 .empty-state-container {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	flex-grow: 1; /* Растягиваем на всё доступное пространство */
+	flex-grow: 1;
+}
+
+.exercises-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+	padding: 0 16px;
+}
+
+.exercise-item {
+	background: #ffffff;
+	border-radius: 12px;
+	padding: 14px 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.exercise-left {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex: 1;
+}
+
+.exercise-icon {
+	width: 44px;
+	height: 44px;
+	background: #f1f6ea;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #3d5a20;
+	flex-shrink: 0;
+}
+
+.exercise-info {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.exercise-name {
+	font-size: 16px;
+	font-weight: 500;
+	color: #1a1a1a;
+}
+
+.exercise-category {
+	font-size: 14px;
+	color: #7f8186;
+}
+
+.remove-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: #c5c5c5;
+	padding: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: color 0.2s;
+}
+
+.remove-btn:hover {
+	color: #ff4444;
 }
 
 .timer-wrapper,
