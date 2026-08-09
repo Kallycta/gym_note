@@ -6,7 +6,7 @@ const time = ref('01:30')
 
 // Логика для изменения времени
 const adjustTime = (amount: number) => {
-	const [mins, secs] = time.value.split(':').map(Number)
+	const [mins = 0, secs = 0] = time.value.split(':').map(Number)
 	let totalSeconds = mins * 60 + secs + amount
 
 	// Не даем уйти в минус

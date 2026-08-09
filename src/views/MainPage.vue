@@ -20,17 +20,17 @@ const navigateForward = inject<(pageName: string, params?: any, transition?: str
 
 async function handleAddWorkout() {
 	// slide-left = страница выезжает справа налево
-	await navigateForward('addWorkout', { message: 'Привет!' }, 'slide-bottom')
+	await navigateForward?.('addWorkout', { message: 'Привет!' }, 'slide-bottom')
 }
 
 async function handleAddWorkout2() {
 	// slide-bottom = страница выезжает снизу вверх
-	await navigateForward('settings', { message: 'Снизу!' }, 'slide-left')
+	await navigateForward?.('settings', { message: 'Снизу!' }, 'slide-left')
 }
 
 async function handleAddWorkout3() {
 	// none = страница появляется поверх без анимации (просто замена контента)
-	await navigateForward('settings', { message: 'Без анимации!' }, 'none')
+	await navigateForward?.('settings', { message: 'Без анимации!' }, 'none')
 }
 
 // async function handleAddWorkout() {

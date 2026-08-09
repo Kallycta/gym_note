@@ -51,7 +51,7 @@ const calendarGrid = computed(() => {
 		const isToday = currentDate.getTime() === today.getTime()
 
 		// Проверяем, была ли тренировка в этот день
-		const hasWorkout = props.workoutDates?.includes(dateString) || false
+		const hasWorkout = props.workoutDates?.includes(dateString) ?? false
 
 		days.push({
 			date: currentDate,

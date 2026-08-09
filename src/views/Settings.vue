@@ -49,9 +49,9 @@ function handleClose() {
 
 	if(transition !==  'none') {
 		setTimeout(() => {
-			goBack()
+			goBack?.()
 		}, 350)
-	} else goBack()
+	} else goBack?.()
 
 
 }

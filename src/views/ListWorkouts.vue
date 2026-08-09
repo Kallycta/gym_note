@@ -24,7 +24,7 @@ function handleClose() {
 	isVisible.value = false
 
 	setTimeout(() => {
-		goBack()
+		goBack?.()
 	}, 350) // Чуть больше, чтобы анимация точно завершилась
 }
 </script>

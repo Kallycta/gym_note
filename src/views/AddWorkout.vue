@@ -81,7 +81,7 @@ function handleClose() {
 }
 
 async function handleCategoryClick(group: MuscleGroup) {
-  await navigateForward('exerciseList', { title: group.title }, 'none')
+  await navigateForward?.('exerciseList', { title: group.title }, 'none')
 }
 </script>
 
