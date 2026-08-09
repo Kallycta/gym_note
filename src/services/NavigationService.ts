@@ -42,6 +42,22 @@ export function createNavigationService(homeComponent) {
 
 		window.history.replaceState({ depth: 1 }, '', '/')
 		window.addEventListener('popstate', handleBrowserBack)
+		
+		// Проверяем текущий URL и открываем нужную страницу если это не '/'
+		checkInitialRoute()
+	}
+	
+	async function checkInitialRoute() {
+		const path = window.location.pathname.slice(1) // убираем ведущий '/'
+		
+		if (!path || path === '/') return
+		
+		// Нормализуем путь: add-workout -> addWorkout
+		const pageName = path.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase())
+		
+		if (pageRegistry[pageName]) {
+			await navigateTo(pageName, {}, null)
+		}
 	}
 
 	async function navigateTo(pageName, params = {}, transitionOverride = null) {
