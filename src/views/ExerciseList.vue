@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, inject, onMounted, computed } from 'vue'
 import { useNavigationStack } from '@/composables/useNavigationStack'
+import { exercises as allExercises } from '@/data/exercises'
 
 // --- Types ---
 export interface ExerciseItem {
@@ -45,21 +46,26 @@ const selectedFilter = ref<string | null>(null)
 const searchQuery = ref('')
 const isSearchOpen = ref(false)
 
-// --- Mock data ---
-const defaultExercises: ExerciseItem[] = [
-  { id: 1, title: 'Жим лежа', subtitle: 'штанга', iconId: 'chest-barbell', tags: ['середина', 'штанга'] },
-  { id: 2, title: 'Жим лежа', subtitle: 'гантели', iconId: 'chest-dumbbell', tags: ['середина', 'гантель x2'] },
-  { id: 3, title: 'Жим лежа', subtitle: 'нижний блок', iconId: 'chest-cable', tags: ['середина', 'трос'] },
-  { id: 4, title: 'Жим лежа', subtitle: 'тренажер Смита', iconId: 'chest-smith', tags: ['середина', 'тренажер'] },
-  { id: 5, title: 'Жим лежа (наклон)', subtitle: 'штанга', iconId: 'incline-barbell', tags: ['верх', 'штанга'] },
-  { id: 6, title: 'Жим лежа (наклон)', subtitle: 'гантели', iconId: 'incline-dumbbell', tags: ['верх', 'гантель x2'] },
-  { id: 7, title: 'Жим лежа (наклон)', subtitle: 'нижний блок', iconId: 'incline-cable', tags: ['верх', 'трос'] },
-  { id: 8, title: 'Жим лежа (наклон)', subtitle: 'тренажер Смита', iconId: 'incline-smith', tags: ['верх', 'тренажер'] },
-  { id: 9, title: 'Жим лежа (обратный наклон)', subtitle: 'штанга', iconId: 'decline-barbell', tags: ['низ', 'штанга'] },
-]
+// --- Get exercises by category ---
+const categoryExercises = computed(() => {
+  const category = props.title
+  if (!category) return []
+  
+  return allExercises
+    .filter(ex => ex.category === category)
+    .map(ex => ({
+      id: ex.id,
+      title: ex.name,
+      subtitle: ex.equipment,
+      iconId: undefined,
+      tags: ex.muscles
+    }))
+})
 
 const displayExercises = computed(() => {
-  const exercises = props.exercises && props.exercises.length > 0 ? props.exercises : defaultExercises
+  const exercises = props.exercises && props.exercises.length > 0 
+    ? props.exercises 
+    : categoryExercises.value
   
   let filtered = exercises
   
