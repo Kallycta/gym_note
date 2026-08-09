@@ -9,7 +9,7 @@ interface PageConfig {
 interface PageInstance {
   id: string
   name: string
-  transition: string
+  transition: string | null
   component: any
   params: Record<string, any>
   timestamp: number

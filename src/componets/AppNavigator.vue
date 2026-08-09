@@ -1,6 +1,6 @@
 <!-- src/components/AppNavigator.vue -->
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, provide, Ref } from 'vue'
+import { computed, onMounted, onUnmounted, provide } from 'vue'
 import { createNavigationService } from '@/services/NavigationService'
 import { NAVIGATION_KEY } from '@/composables/useNavigationStack'
 
@@ -48,7 +48,7 @@ provide('goBack', goBack)
       v-for="(page, index) in stack"
       :key="page.id"
       class="page-layer"
-      :style="{ zIndex: index + 1 }"
+      :style="{ zIndex: Number(index) + 1 }"
     >
       <component
         :is="page.component"

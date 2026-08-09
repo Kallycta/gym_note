@@ -1,5 +1,5 @@
 // @/composables/useCollapse.ts
-import { ref, nextTick, type Ref } from 'vue'
+import { ref, nextTick } from 'vue'
 
 export const useCollapse = (initialState = false) => {
 	const isOpen = ref(initialState)
