@@ -1,12 +1,91 @@
-
+```
 # Build artifacts
 dist/
+build/
 *.js
-*.css
-.idea/
-.vscode/
+
 # Dependencies
 node_modules/
 
-# Temporary files
-node_modules/.tmp/
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Archives
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+htmlcov/
+.coverage
+.mypy_cache/
+.pytest_cache/
+
+# Java/Maven
+target/
+.gradle/
+*.class
+
+# Go
+*.mod
+*.sum
+
+# Rust
+target/
+
+# Julia
+julia-*/
+
+# Zig
+zig*/
+```
