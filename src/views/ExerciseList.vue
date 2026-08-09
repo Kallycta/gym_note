@@ -42,6 +42,8 @@ const isNone = computed(() => transition === 'none')
 
 // --- Filter state ---
 const selectedFilter = ref<string | null>(null)
+const searchQuery = ref('')
+const isSearchOpen = ref(false)
 
 // --- Mock data ---
 const defaultExercises: ExerciseItem[] = [
@@ -59,14 +61,29 @@ const defaultExercises: ExerciseItem[] = [
 const displayExercises = computed(() => {
   const exercises = props.exercises && props.exercises.length > 0 ? props.exercises : defaultExercises
   
-  if (!selectedFilter.value) {
-    return exercises
+  let filtered = exercises
+  
+  // Фильтрация по тегу
+  if (selectedFilter.value) {
+    filtered = filtered.filter(exercise => {
+      if (!exercise.tags) return false
+      return exercise.tags.some(tag => tag.toLowerCase() === selectedFilter.value?.toLowerCase())
+    })
   }
   
-  return exercises.filter(exercise => {
-    if (!exercise.tags) return false
-    return exercise.tags.some(tag => tag.toLowerCase() === selectedFilter.value?.toLowerCase())
-  })
+  // Фильтрация по поиску
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(exercise => {
+      return (
+        exercise.title.toLowerCase().includes(query) ||
+        (exercise.subtitle && exercise.subtitle.toLowerCase().includes(query)) ||
+        (exercise.tags && exercise.tags.some(tag => tag.toLowerCase().includes(query)))
+      )
+    })
+  }
+  
+  return filtered
 })
 
 // --- Lifecycle ---
@@ -106,6 +123,17 @@ function handleExerciseClick(exercise: ExerciseItem) {
 function handleFilterClick(filterName: string) {
   selectedFilter.value = selectedFilter.value === filterName ? null : filterName
 }
+
+function toggleSearch() {
+  isSearchOpen.value = !isSearchOpen.value
+  if (!isSearchOpen.value) {
+    searchQuery.value = ''
+  }
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+}
 </script>
 
 <template>
@@ -128,8 +156,25 @@ class="exercise-list-screen"
 <button class="icon-btn" aria-label="Добавить">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
 </button>
-<button class="icon-btn" aria-label="Поиск">
+<button class="icon-btn" aria-label="Поиск" @click="toggleSearch">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+</button>
+</div>
+</div>
+
+<!-- Поиск -->
+<div v-if="isSearchOpen" class="search-container">
+<div class="search-input-wrapper">
+<svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+<input 
+  v-model="searchQuery" 
+  type="text" 
+  class="search-input" 
+  placeholder="Поиск упражнений..."
+  autofocus
+/>
+<button v-if="searchQuery" class="clear-btn" @click="clearSearch" aria-label="Очистить">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 </button>
 </div>
 </div>
@@ -299,6 +344,57 @@ cursor: pointer;
 color: #666;
 display: flex;
 align-items: center;
+}
+
+/* Поиск */
+.search-container {
+margin-bottom: 16px;
+flex-shrink: 0;
+}
+
+.search-input-wrapper {
+position: relative;
+display: flex;
+align-items: center;
+background: #ffffff;
+border-radius: 12px;
+padding: 8px 12px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.search-icon {
+color: #8e8e93;
+flex-shrink: 0;
+margin-right: 8px;
+}
+
+.search-input {
+flex: 1;
+border: none;
+outline: none;
+font-size: 16px;
+color: #1a1a1a;
+background: transparent;
+padding: 4px 0;
+}
+
+.search-input::placeholder {
+color: #8e8e93;
+}
+
+.clear-btn {
+background: none;
+border: none;
+cursor: pointer;
+color: #8e8e93;
+padding: 4px;
+display: flex;
+align-items: center;
+margin-left: 4px;
+}
+
+.clear-btn:hover {
+color: #1a1a1a;
 }
 
 /* Теги (фильтры) */
