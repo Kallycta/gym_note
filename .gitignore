@@ -1,12 +1,1 @@
-```
-# Build artifacts
-dist/
-*.js
-*.css
-
-# Dependencies
-node_modules/
-
-# Temporary files
-node_modules/.tmp/
-```
+(src/services/NavigationService.ts)
