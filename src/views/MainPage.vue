@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, onMounted, onBeforeUnmount } from 'vue'
+import type { WorkoutExercise } from '@/stores/workoutStore'
 
 import HeaderMain from '@/componets/header/HeaderMain.vue'
 import TImerPanel from '@/componets/TImerPanel.vue'
@@ -78,6 +79,42 @@ const removeExercise = (id: number) => {
 	workoutStore.removeExercise(id)
 }
 
+// Меню для упражнения
+const openMenuId = ref<number | null>(null)
+
+const toggleMenu = (id: number) => {
+	openMenuId.value = openMenuId.value === id ? null : id
+}
+
+const closeMenu = () => {
+	openMenuId.value = null
+}
+
+const handleReplaceExercise = (exercise: WorkoutExercise) => {
+	closeMenu()
+	navigateForward?.('addWorkout', { replaceExerciseId: exercise.id }, 'none')
+}
+
+const handlePastPerformance = (exerciseId: number) => {
+	closeMenu()
+	console.log('Прошлое выполнение для упражнения:', exerciseId)
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+	const target = event.target as HTMLElement
+	if (!target.closest('.menu-btn') && !target.closest('.menu-popup-main')) {
+		closeMenu()
+	}
+}
+
+onMounted(() => {
+	document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+	document.removeEventListener('click', handleClickOutside)
+})
+
 </script>
 
 <template>
@@ -130,12 +167,46 @@ const removeExercise = (id: number) => {
 								<span class="exercise-category">{{ exercise.category }}</span>
 							</div>
 						</div>
-						<button class="remove-btn" @click="removeExercise(exercise.id)" aria-label="Удалить">
-							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<line x1="18" y1="6" x2="6" y2="18"></line>
-								<line x1="6" y1="6" x2="18" y2="18"></line>
-							</svg>
-						</button>
+                            <div class="exercise-right">
+                                <button class="add-icon" aria-label="Добавлено">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
+                                <button class="menu-btn" @click.stop="toggleMenu(exercise.id)" aria-label="Меню">
+                                    <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
+                                        <circle cx="2" cy="2" r="2"/>
+                                        <circle cx="2" cy="8" r="2"/>
+                                        <circle cx="2" cy="14" r="2"/>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Выпадающее меню -->
+                                <div v-if="openMenuId === exercise.id" class="menu-popup-main">
+                                    <div class="menu-item" @click="handleReplaceExercise(exercise)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M23 4v6h-6"></path>
+                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                        </svg>
+                                        <span>Заменить упражнение</span>
+                                    </div>
+                                    <div class="menu-item" @click="handlePastPerformance(exercise.id)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        <span>Прошлое выполнение</span>
+                                    </div>
+                                    <div class="menu-item danger" @click="removeExercise(exercise.id)">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                        <span>Убрать упражнение</span>
+                                    </div>
+                                </div>
+                            </div>
 					</div>
 				</div>
 			</template>
@@ -353,5 +424,73 @@ const removeExercise = (id: number) => {
 	height: 5px;
 	background-color: #c5c5c5;
 	border-radius: 10px;
+}
+
+.exercise-right {
+display: flex;
+align-items: center;
+gap: 8px;
+position: relative;
+}
+
+.add-icon {
+background: none;
+border: none;
+cursor: default;
+color: #4ade80;
+padding: 4px;
+display: flex;
+align-items: center;
+}
+
+.menu-btn {
+background: none;
+border: none;
+cursor: pointer;
+color: #8e8e93;
+padding: 8px;
+display: flex;
+align-items: center;
+}
+
+.menu-popup-main {
+position: absolute;
+right: 0;
+top: 100%;
+background: #ffffff;
+border-radius: 12px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+padding: 8px;
+min-width: 200px;
+z-index: 100;
+margin-top: 4px;
+}
+
+.menu-item {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 10px 12px;
+border-radius: 8px;
+cursor: pointer;
+transition: background 0.15s;
+color: #1a1a1a;
+font-size: 14px;
+}
+
+.menu-item:hover {
+background: #f5f6f8;
+}
+
+.menu-item.danger {
+color: #ff4444;
+}
+
+.menu-item.danger:hover {
+background: #fff5f5;
+}
+
+.menu-item svg {
+flex-shrink: 0;
 }
 </style>
