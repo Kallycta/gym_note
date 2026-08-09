@@ -2,6 +2,7 @@
 import { ref, inject, onMounted, computed } from 'vue'
 import { useNavigationStack } from '@/composables/useNavigationStack'
 import { exercises as allExercises } from '@/data/exercises'
+import { workoutStore } from '@/stores/workoutStore'
 
 // --- Types ---
 export interface ExerciseItem {
@@ -15,7 +16,7 @@ export interface ExerciseItem {
 // --- Props & Emits ---
 const props = defineProps<{
   title: string
-  exercises?: ExerciseItem[]
+  exercises?: ExerciseItem
 }>()
 
 const emit = defineEmits<{
@@ -56,9 +57,9 @@ const categoryExercises = computed(() => {
     .map(ex => ({
       id: ex.id,
       title: ex.name,
-      subtitle: ex.equipment,
+      subtitle: ex.tags.join(', '),
       iconId: undefined,
-      tags: ex.muscles
+      tags: ex.tags
     }))
 })
 
@@ -123,7 +124,11 @@ function handleClose() {
 }
 
 function handleExerciseClick(exercise: ExerciseItem) {
-  emit('select-exercise', exercise)
+  workoutStore.addExercise({
+    id: exercise.id,
+    name: exercise.title,
+    category: props.title
+  })
 }
 
 function handleFilterClick(filterName: string) {
@@ -139,6 +144,10 @@ function toggleSearch() {
 
 function clearSearch() {
   searchQuery.value = ''
+}
+
+function isSelected(id: number) {
+  return workoutStore.isExerciseSelected(id)
 }
 </script>
 
@@ -251,6 +260,7 @@ class="exercise-list-screen"
 v-for="exercise in displayExercises"
 :key="exercise.id"
 class="list-item"
+:class="{ selected: isSelected(exercise.id) }"
 @click="handleExerciseClick(exercise)"
 >
 <div class="item-left">
@@ -446,10 +456,15 @@ justify-content: space-between;
 align-items: center;
 box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 cursor: pointer;
-transition: background 0.2s;
+transition: all 0.2s;
+border: 2px solid transparent;
 }
 .list-item:active {
 background: #f0f1f3;
+}
+.list-item.selected {
+border-color: #4ade80;
+background: #f0fdf4;
 }
 
 .item-left {
