@@ -42,7 +42,17 @@ const stack = ref<PageInstance[]>([])
 const isTransitioning = ref(false)
 
 export function createNavigationService(homeComponent: any) {
-  function init() {
+  let isInitialized = false
+
+  async function init() {
+    if (isInitialized) return
+    
+    // Сначала проверяем текущий URL, чтобы понять, нужно ли открывать страницу
+    const path = window.location.pathname.slice(1) // убираем ведущий '/'
+    const pageName = path ? path.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase()) : ''
+    const shouldOpenPage = pageName && pageRegistry[pageName]
+    
+    // Инициализируем стек
     stack.value = [{
       id: 'home',
       name: 'home',
@@ -52,22 +62,23 @@ export function createNavigationService(homeComponent: any) {
       timestamp: Date.now()
     }]
 
-    window.history.replaceState({ depth: 1 }, '', '/')
+    // Если нужно открыть страницу - делаем pushState с правильным путем
+    if (shouldOpenPage) {
+      window.history.pushState(
+        { depth: 2 },
+        '',
+        `/${pageName}`
+      )
+    } else {
+      // Иначе остаемся на главной
+      window.history.replaceState({ depth: 1 }, '', '/')
+    }
+    
     window.addEventListener('popstate', handleBrowserBack)
+    isInitialized = true
     
-    // Проверяем текущий URL и открываем нужную страницу если это не '/'
-    checkInitialRoute()
-  }
-  
-  async function checkInitialRoute() {
-    const path = window.location.pathname.slice(1) // убираем ведущий '/'
-    
-    if (!path || path === '/') return
-    
-    // Нормализуем путь: add-workout -> addWorkout
-    const pageName = path.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase())
-    
-    if (pageRegistry[pageName]) {
+    // Теперь открываем страницу если нужно
+    if (shouldOpenPage) {
       await navigateTo(pageName, {}, null)
     }
   }
