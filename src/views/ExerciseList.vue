@@ -8,6 +8,7 @@ export interface ExerciseItem {
   title: string
   subtitle?: string
   iconId?: string
+  tags?: string[]
 }
 
 // --- Props & Emits ---
@@ -39,21 +40,33 @@ const isSlideLeft = computed(() => transition === 'slide-left')
 const isSlideUp = computed(() => transition === 'slide-bottom' || transition === 'slide-up')
 const isNone = computed(() => transition === 'none')
 
+// --- Filter state ---
+const selectedFilter = ref<string | null>(null)
+
 // --- Mock data ---
 const defaultExercises: ExerciseItem[] = [
-  { id: 1, title: 'Жим лежа', subtitle: 'штанга', iconId: 'chest-barbell' },
-  { id: 2, title: 'Жим лежа', subtitle: 'гантели', iconId: 'chest-dumbbell' },
-  { id: 3, title: 'Жим лежа', subtitle: 'нижний блок', iconId: 'chest-cable' },
-  { id: 4, title: 'Жим лежа', subtitle: 'тренажер Смита', iconId: 'chest-smith' },
-  { id: 5, title: 'Жим лежа (наклон)', subtitle: 'штанга', iconId: 'incline-barbell' },
-  { id: 6, title: 'Жим лежа (наклон)', subtitle: 'гантели', iconId: 'incline-dumbbell' },
-  { id: 7, title: 'Жим лежа (наклон)', subtitle: 'нижний блок', iconId: 'incline-cable' },
-  { id: 8, title: 'Жим лежа (наклон)', subtitle: 'тренажер Смита', iconId: 'incline-smith' },
-  { id: 9, title: 'Жим лежа (обратный наклон)', subtitle: 'штанга', iconId: 'decline-barbell' },
+  { id: 1, title: 'Жим лежа', subtitle: 'штанга', iconId: 'chest-barbell', tags: ['середина', 'штанга'] },
+  { id: 2, title: 'Жим лежа', subtitle: 'гантели', iconId: 'chest-dumbbell', tags: ['середина', 'гантель x2'] },
+  { id: 3, title: 'Жим лежа', subtitle: 'нижний блок', iconId: 'chest-cable', tags: ['середина', 'трос'] },
+  { id: 4, title: 'Жим лежа', subtitle: 'тренажер Смита', iconId: 'chest-smith', tags: ['середина', 'тренажер'] },
+  { id: 5, title: 'Жим лежа (наклон)', subtitle: 'штанга', iconId: 'incline-barbell', tags: ['верх', 'штанга'] },
+  { id: 6, title: 'Жим лежа (наклон)', subtitle: 'гантели', iconId: 'incline-dumbbell', tags: ['верх', 'гантель x2'] },
+  { id: 7, title: 'Жим лежа (наклон)', subtitle: 'нижний блок', iconId: 'incline-cable', tags: ['верх', 'трос'] },
+  { id: 8, title: 'Жим лежа (наклон)', subtitle: 'тренажер Смита', iconId: 'incline-smith', tags: ['верх', 'тренажер'] },
+  { id: 9, title: 'Жим лежа (обратный наклон)', subtitle: 'штанга', iconId: 'decline-barbell', tags: ['низ', 'штанга'] },
 ]
 
 const displayExercises = computed(() => {
-  return props.exercises && props.exercises.length > 0 ? props.exercises : defaultExercises
+  const exercises = props.exercises && props.exercises.length > 0 ? props.exercises : defaultExercises
+  
+  if (!selectedFilter.value) {
+    return exercises
+  }
+  
+  return exercises.filter(exercise => {
+    if (!exercise.tags) return false
+    return exercise.tags.some(tag => tag.toLowerCase() === selectedFilter.value?.toLowerCase())
+  })
 })
 
 // --- Lifecycle ---
@@ -89,6 +102,10 @@ function handleClose() {
 function handleExerciseClick(exercise: ExerciseItem) {
   emit('select-exercise', exercise)
 }
+
+function handleFilterClick(filterName: string) {
+  selectedFilter.value = selectedFilter.value === filterName ? null : filterName
+}
 </script>
 
 <template>
@@ -119,22 +136,62 @@ class="exercise-list-screen"
 
 <!-- Фильтры и теги -->
 <div class="tags-container">
-<div class="tag-group">
-<span class="tag active">Середина</span>
-<span class="tag">Верх</span>
-<span class="tag">Низ</span>
-<span class="tag">Свой вес</span>
-</div>
-<div class="tag-group">
-<span class="tag">Штанга</span>
-<span class="tag">Гантель x1</span>
-<span class="tag">Гантели x2</span>
-<span class="tag">Трос</span>
-</div>
-<div class="tag-group">
-<span class="tag">Тренажер</span>
-<span class="tag">Другое</span>
-</div>
+  <div class="tag-group">
+    <span 
+      class="tag" 
+      :class="{ active: selectedFilter === 'середина' }"
+      @click="handleFilterClick('середина')"
+    >Середина</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'верх' }"
+      @click="handleFilterClick('верх')"
+    >Верх</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'низ' }"
+      @click="handleFilterClick('низ')"
+    >Низ</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'свой вес' }"
+      @click="handleFilterClick('свой вес')"
+    >Свой вес</span>
+  </div>
+  <div class="tag-group">
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'штанга' }"
+      @click="handleFilterClick('штанга')"
+    >Штанга</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'гантель x1' }"
+      @click="handleFilterClick('гантель x1')"
+    >Гантель x1</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'гантель x2' }"
+      @click="handleFilterClick('гантель x2')"
+    >Гантели x2</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'трос' }"
+      @click="handleFilterClick('трос')"
+    >Трос</span>
+  </div>
+  <div class="tag-group">
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'тренажер' }"
+      @click="handleFilterClick('тренажер')"
+    >Тренажер</span>
+    <span 
+      class="tag"
+      :class="{ active: selectedFilter === 'другое' }"
+      @click="handleFilterClick('другое')"
+    >Другое</span>
+  </div>
 </div>
 
 <!-- Список упражнений -->
