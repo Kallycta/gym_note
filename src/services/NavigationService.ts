@@ -18,6 +18,10 @@ export const pageRegistry = {
 		component: () => import('@/views/ListWorkouts.vue'),
 		defaultTransition: 'slide-bottom'
 	},
+	exerciseList: {
+		component: () => import('@/views/ExerciseList.vue'),
+		defaultTransition: 'none'
+	},
 
 }
 

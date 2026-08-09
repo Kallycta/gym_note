@@ -1,183 +1,189 @@
 <script setup lang="ts">
 import { ref, inject, onMounted, computed } from 'vue'
+import { useNavigationStack } from '@/composables/useNavigationStack'
 
+// --- Types ---
+export interface ExerciseItem {
+  id: number
+  title: string
+  subtitle?: string
+  iconId?: string
+}
+
+// --- Props & Emits ---
 const props = defineProps<{
-	title: string // Например: "Грудь", "Руки"
-	exercises: ExerciseItem[]
+  title: string
+  exercises?: ExerciseItem[]
 }>()
 
-// Событие, которое вызывается при клике на упражнение
 const emit = defineEmits<{
-	(e: 'select-exercise', exercise: ExerciseItem): void
+  (e: 'select-exercise', exercise: ExerciseItem): void
+  (e: 'close'): void
 }>()
 
-// Навигация (для закрытия)
+// --- Navigation ---
 const goBack = inject<() => void>('goBack')
+const navigateForward = inject<(pageName: string, params?: any, transition?: string) => Promise<void>>('navigateForward')
 
-// Анимация
+// --- Animation state ---
 const isVisible = ref(false)
 const isLeaving = ref(false)
 const ready = ref(false)
 
-import { useNavigationStack } from '@/composables/useNavigationStack'
+// --- Navigation transition ---
 const navigation = useNavigationStack()
 const currentPage = navigation.currentPage.value
-const transition = currentPage?.transition || 'slide-up'
+const transition = currentPage?.transition || 'none'
 
-const isSlideLeft = transition === 'slide-left'
-const isSlideUp = transition === 'slide-bottom' || transition === 'slide-up'
-const isNone = transition === 'none'
+const isSlideLeft = computed(() => transition === 'slide-left')
+const isSlideUp = computed(() => transition === 'slide-bottom' || transition === 'slide-up')
+const isNone = computed(() => transition === 'none')
 
-// --- Типы данных ---
-export interface ExerciseItem {
-	id: number
-	title: string
-	subtitle?: string // Например: "Штанга", "Гантели", "Нижний блок"
-	iconId: string // Название иконки-картинки (для отрисовки svg)
-}
-
-// --- Мок-данные для отображения (если не передать props) ---
+// --- Mock data ---
 const defaultExercises: ExerciseItem[] = [
-	{ id: 1, title: 'Жим лежа', subtitle: 'штанга', iconId: 'chest-barbell' },
-	{ id: 2, title: 'Жим лежа', subtitle: 'гантели', iconId: 'chest-dumbbell' },
-	{ id: 3, title: 'Жим лежа', subtitle: 'нижний блок', iconId: 'chest-cable' },
-	{ id: 4, title: 'Жим лежа', subtitle: 'тренажер Смита', iconId: 'chest-smith' },
-	{ id: 5, title: 'Жим лежа (наклон)', subtitle: 'штанга', iconId: 'incline-barbell' },
-	{ id: 6, title: 'Жим лежа (наклон)', subtitle: 'гантели', iconId: 'incline-dumbbell' },
-	{ id: 7, title: 'Жим лежа (наклон)', subtitle: 'нижний блок', iconId: 'incline-cable' },
-	{ id: 8, title: 'Жим лежа (наклон)', subtitle: 'тренажер Смита', iconId: 'incline-smith' },
-	{ id: 9, title: 'Жим лежа (обратный наклон)', subtitle: 'штанга', iconId: 'decline-barbell' },
+  { id: 1, title: 'Жим лежа', subtitle: 'штанга', iconId: 'chest-barbell' },
+  { id: 2, title: 'Жим лежа', subtitle: 'гантели', iconId: 'chest-dumbbell' },
+  { id: 3, title: 'Жим лежа', subtitle: 'нижний блок', iconId: 'chest-cable' },
+  { id: 4, title: 'Жим лежа', subtitle: 'тренажер Смита', iconId: 'chest-smith' },
+  { id: 5, title: 'Жим лежа (наклон)', subtitle: 'штанга', iconId: 'incline-barbell' },
+  { id: 6, title: 'Жим лежа (наклон)', subtitle: 'гантели', iconId: 'incline-dumbbell' },
+  { id: 7, title: 'Жим лежа (наклон)', subtitle: 'нижний блок', iconId: 'incline-cable' },
+  { id: 8, title: 'Жим лежа (наклон)', subtitle: 'тренажер Смита', iconId: 'incline-smith' },
+  { id: 9, title: 'Жим лежа (обратный наклон)', subtitle: 'штанга', iconId: 'decline-barbell' },
 ]
 
-// Если в props пришли упражнения, используем их. Иначе дефолтные для демонстрации.
 const displayExercises = computed(() => {
-	return props.exercises && props.exercises.length > 0 ? props.exercises : defaultExercises
+  return props.exercises && props.exercises.length > 0 ? props.exercises : defaultExercises
 })
 
+// --- Lifecycle ---
 onMounted(() => {
-	if(transition !== 'none') {
-		requestAnimationFrame(() => {
-			ready.value = true
-			requestAnimationFrame(() => {
-				isVisible.value = true
-			})
-		})
-	} else {
-		ready.value = true
-		isVisible.value = true
-	}
+  if (transition !== 'none') {
+    requestAnimationFrame(() => {
+      ready.value = true
+      requestAnimationFrame(() => {
+        isVisible.value = true
+      })
+    })
+  } else {
+    ready.value = true
+    isVisible.value = true
+  }
 })
 
+// --- Methods ---
 function handleClose() {
-	isLeaving.value = true
-	isVisible.value = false
+  emit('close')
+  isLeaving.value = true
+  isVisible.value = false
 
-	if(transition !== 'none') {
-		setTimeout(() => {
-			goBack?.()
-		}, 350)
-	} else goBack?.()
+  if (transition !== 'none') {
+    setTimeout(() => {
+      goBack?.()
+    }, 350)
+  } else {
+    goBack?.()
+  }
 }
 
 function handleExerciseClick(exercise: ExerciseItem) {
-	emit('select-exercise', exercise)
+  emit('select-exercise', exercise)
 }
 </script>
 
 <template>
-	<div
-		class="exercise-list-screen"
-		:class="{
-			'exercise-list-ready': ready,
-			'exercise-list-visible': isVisible,
-			'exercise-list-leaving': isLeaving,
-			'slide-left-mode': isSlideLeft,
-			'slide-up-mode': isSlideUp,
-			'none-mode': isNone
-		}"
-	>
-		<div class="content-sheet">
-			<!-- Хедер страницы -->
-			<div class="header">
-				<h2 class="page-title">{{ title }}</h2>
-				<div class="header-actions">
-					<button class="icon-btn" aria-label="Добавить">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-					</button>
-					<button class="icon-btn" aria-label="Поиск">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-					</button>
-				</div>
-			</div>
+<div
+class="exercise-list-screen"
+:class="{
+'exercise-list-ready': ready,
+'exercise-list-visible': isVisible,
+'exercise-list-leaving': isLeaving,
+'slide-left-mode': isSlideLeft,
+'slide-up-mode': isSlideUp,
+'none-mode': isNone
+}"
+>
+<div class="content-sheet">
+<!-- Хедер страницы -->
+<div class="header">
+<h2 class="page-title">{{ title }}</h2>
+<div class="header-actions">
+<button class="icon-btn" aria-label="Добавить">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+</button>
+<button class="icon-btn" aria-label="Поиск">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+</button>
+</div>
+</div>
 
-			<!-- Фильтры и теги (как на скрине) -->
-			<div class="tags-container">
-				<div class="tag-group">
-					<span class="tag active">Середина</span>
-					<span class="tag">Верх</span>
-					<span class="tag">Низ</span>
-					<span class="tag">Свой вес</span>
-				</div>
-				<div class="tag-group">
-					<span class="tag">Штанга</span>
-					<span class="tag">Гантель x1</span>
-					<span class="tag">Гантели x2</span>
-					<span class="tag">Трос</span>
-				</div>
-				<div class="tag-group">
-					<span class="tag">Тренажер</span>
-					<span class="tag">Другое</span>
-				</div>
-			</div>
+<!-- Фильтры и теги -->
+<div class="tags-container">
+<div class="tag-group">
+<span class="tag active">Середина</span>
+<span class="tag">Верх</span>
+<span class="tag">Низ</span>
+<span class="tag">Свой вес</span>
+</div>
+<div class="tag-group">
+<span class="tag">Штанга</span>
+<span class="tag">Гантель x1</span>
+<span class="tag">Гантели x2</span>
+<span class="tag">Трос</span>
+</div>
+<div class="tag-group">
+<span class="tag">Тренажер</span>
+<span class="tag">Другое</span>
+</div>
+</div>
 
-			<!-- Список упражнений -->
-			<div class="list-container">
-				<div
-					v-for="exercise in displayExercises"
-					:key="exercise.id"
-					class="list-item"
-					@click="handleExerciseClick(exercise)"
-				>
-					<div class="item-left">
-						<div class="item-image-placeholder">
-							<!-- Здесь можно вставить реальные SVG иконки упражнений -->
-							<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M5 16 L10 10 L14 14 L19 9" /> <!-- Временная заглушка человечка -->
-								<rect x="2" y="18" width="20" height="4" rx="1" />
-							</svg>
-						</div>
-						<div class="item-text">
-							<span class="item-title">{{ exercise.title }}</span>
-							<span class="item-subtitle">· {{ exercise.subtitle }}</span>
-						</div>
-					</div>
+<!-- Список упражнений -->
+<div class="list-container">
+<div
+v-for="exercise in displayExercises"
+:key="exercise.id"
+class="list-item"
+@click="handleExerciseClick(exercise)"
+>
+<div class="item-left">
+<div class="item-image-placeholder">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M5 16 L10 10 L14 14 L19 9" />
+<rect x="2" y="18" width="20" height="4" rx="1" />
+</svg>
+</div>
+<div class="item-text">
+<span class="item-title">{{ exercise.title }}</span>
+<span class="item-subtitle">· {{ exercise.subtitle }}</span>
+</div>
+</div>
 
-					<div class="item-right">
-						<button class="item-more-btn" @click.stop>
-							<svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor"><circle cx="2" cy="2" r="2"/><circle cx="2" cy="8" r="2"/><circle cx="2" cy="14" r="2"/></svg>
-						</button>
-					</div>
-				</div>
-			</div>
+<div class="item-right">
+<button class="item-more-btn" @click.stop>
+<svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor"><circle cx="2" cy="2" r="2"/><circle cx="2" cy="8" r="2"/><circle cx="2" cy="14" r="2"/></svg>
+</button>
+</div>
+</div>
+</div>
 
-			<!-- Кнопка "Закрыть" -->
-			<div class="fab-wrapper">
-				<button class="fab-close" @click="handleClose">ЗАКРЫТЬ</button>
-			</div>
-		</div>
-	</div>
+<!-- Кнопка "Закрыть" -->
+<div class="fab-wrapper">
+<button class="fab-close" @click="handleClose">ЗАКРЫТЬ</button>
+</div>
+</div>
+</div>
 </template>
 
 <style scoped>
 /* Обертка */
 .exercise-list-screen {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	align-items: flex-end;
-	transition: none;
-	background: #f5f6f8; /* Фон на весь экран */
-	z-index: 10;
+position: absolute;
+inset: 0;
+display: flex;
+align-items: flex-end;
+transition: none;
+background: #f5f6f8;
+z-index: 10;
 }
 
 .slide-up-mode { transform: translateY(100%); }
@@ -196,171 +202,171 @@ function handleExerciseClick(exercise: ExerciseItem) {
 .exercise-list-leaving.none-mode { transform: none; }
 
 .content-sheet {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	background: #f5f6f8;
-	padding: 20px 16px 80px;
-	overflow-y: auto;
-	box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-	display: flex;
-	flex-direction: column;
+position: relative;
+width: 100%;
+height: 100%;
+background: #f5f6f8;
+padding: 20px 16px 80px;
+overflow-y: auto;
+box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+display: flex;
+flex-direction: column;
 }
 
 /* Хедер */
 .header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 20px;
-	flex-shrink: 0;
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+flex-shrink: 0;
 }
 
 .page-title {
-	font-size: 24px;
-	font-weight: 500;
-	color: #1a1a1a;
-	margin: 0;
+font-size: 24px;
+font-weight: 500;
+color: #1a1a1a;
+margin: 0;
 }
 
 .header-actions {
-	display: flex;
-	gap: 16px;
+display: flex;
+gap: 16px;
 }
 
 .icon-btn {
-	background: none;
-	border: none;
-	padding: 4px;
-	cursor: pointer;
-	color: #666;
-	display: flex;
-	align-items: center;
+background: none;
+border: none;
+padding: 4px;
+cursor: pointer;
+color: #666;
+display: flex;
+align-items: center;
 }
 
 /* Теги (фильтры) */
 .tags-container {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-bottom: 24px;
-	flex-shrink: 0;
+display: flex;
+flex-direction: column;
+gap: 8px;
+margin-bottom: 24px;
+flex-shrink: 0;
 }
 .tag-group {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
 }
 .tag {
-	background: #e8e9ec;
-	padding: 6px 12px;
-	border-radius: 16px;
-	font-size: 13px;
-	color: #1a1a1a;
-	cursor: pointer;
+background: #e8e9ec;
+padding: 6px 12px;
+border-radius: 16px;
+font-size: 13px;
+color: #1a1a1a;
+cursor: pointer;
 }
 .tag.active {
-	background: #f4ecc4;
-	color: #8d7a24;
+background: #f4ecc4;
+color: #8d7a24;
 }
 
 /* Список упражнений */
 .list-container {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	flex: 1;
+display: flex;
+flex-direction: column;
+gap: 8px;
+flex: 1;
 }
 
 .list-item {
-	background: #ffffff;
-	border-radius: 12px;
-	padding: 12px 18px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-	cursor: pointer;
-	transition: background 0.2s;
+background: #ffffff;
+border-radius: 12px;
+padding: 12px 18px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+cursor: pointer;
+transition: background 0.2s;
 }
 .list-item:active {
-	background: #f0f1f3;
+background: #f0f1f3;
 }
 
 .item-left {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	flex: 1;
+display: flex;
+align-items: center;
+gap: 16px;
+flex: 1;
 }
 
 .item-image-placeholder {
-	width: 48px;
-	height: 48px;
-	background: #f1f6ea;
-	border-radius: 8px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: #3d5a20;
+width: 48px;
+height: 48px;
+background: #f1f6ea;
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #3d5a20;
 }
 
 .item-text {
-	display: flex;
-	align-items: baseline;
-	gap: 4px;
-	flex-wrap: wrap;
+display: flex;
+align-items: baseline;
+gap: 4px;
+flex-wrap: wrap;
 }
 
 .item-title {
-	font-size: 16px;
-	font-weight: 500;
-	color: #1a1a1a;
+font-size: 16px;
+font-weight: 500;
+color: #1a1a1a;
 }
 
 .item-subtitle {
-	font-size: 15px;
-	color: #7f8186;
+font-size: 15px;
+color: #7f8186;
 }
 
 .item-right {
-	display: flex;
-	align-items: center;
-	margin-left: 8px;
+display: flex;
+align-items: center;
+margin-left: 8px;
 }
 
 .item-more-btn {
-	background: none;
-	border: none;
-	cursor: pointer;
-	color: #8e8e93;
-	padding: 8px;
-	display: flex;
-	align-items: center;
+background: none;
+border: none;
+cursor: pointer;
+color: #8e8e93;
+padding: 8px;
+display: flex;
+align-items: center;
 }
 
 /* Кнопка закрытия */
 .fab-wrapper {
-	display: flex;
-	justify-content: flex-end; /* Кнопка справа */
-	pointer-events: none;
-	position: fixed;
-	bottom: 20px;
-	right: 20px;
-	z-index: 20;
+display: flex;
+justify-content: flex-end;
+pointer-events: none;
+position: fixed;
+bottom: 20px;
+right: 20px;
+z-index: 20;
 }
 .fab-close {
-	background-color: #111111;
-	color: #ffffff;
-	border: none;
-	border-radius: 12px;
-	padding: 14px 24px;
-	font-size: 14px;
-	font-weight: 500;
-	letter-spacing: 0.5px;
-	cursor: pointer;
-	pointer-events: auto;
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+background-color: #111111;
+color: #ffffff;
+border: none;
+border-radius: 12px;
+padding: 14px 24px;
+font-size: 14px;
+font-weight: 500;
+letter-spacing: 0.5px;
+cursor: pointer;
+pointer-events: auto;
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 .fab-close:active { transform: scale(0.95); }
 </style>
